@@ -1,28 +1,33 @@
-# syntax=docker.io/docker/dockerfile:1
-FROM node:18-alpine
+# Etapa 1: Construcción (Build)
+FROM node:18-alpine AS builder
 
-# Production image, copy all the files and run next
+RUN apk add --no-cache python3 make g++
+
 WORKDIR /app
 
-ENV NODE_ENV=production
-# Uncomment the following line in case you want to disable telemetry during runtime.
-# ENV NEXT_TELEMETRY_DISABLED=1
+# Copia los archivos de dependencias
+COPY package*.json ./
 
-RUN addgroup --system --gid 1001 nodejs
-RUN adduser --system --uid 1001 nextjs
+# Instala dependencias (incluyendo dev) para la compilación
+RUN npm ci
 
-# Automatically leverage output traces to reduce image size
-# https://nextjs.org/docs/advanced-features/output-file-tracing
-COPY --chown=nextjs:nodejs .next/standalone ./
-COPY --chown=nextjs:nodejs .next/static ./.next/static
+# Copiamos el resto del código
+COPY . .
 
-USER nextjs
+# Generar el build standalone
+RUN npm run build
 
+# Etapa 2: Runtime (Ejecución)
+FROM node:18-alpine AS runner
+
+WORKDIR /app
+
+# Copiamos el resultado del build standalone
+COPY --from=builder /app/.next/standalone ./
+COPY --from=builder /app/.next/static ./static
+
+# Puerto por defecto
 EXPOSE 3000
 
-ENV PORT=3000
-
-# server.js is created by next build from the standalone output
-# https://nextjs.org/docs/pages/api-reference/next-config-js/output
-ENV HOSTNAME="0.0.0.0"
+# Comando de inicio
 CMD ["node", "server.js"]
