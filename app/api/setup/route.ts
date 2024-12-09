@@ -20,7 +20,7 @@ export async function POST(request: Request) {
   formData.append('inpLastFieldChanged', '');
   formData.append('inpCurrency', '102');
 
-  const response = await fetch('http://localhost:8080/etendo/ad_forms/InitialClientSetup.html?stateless=true', {
+  const response = await fetch(process.env.ETENDO_URL + '/ad_forms/InitialClientSetup.html?stateless=true', {
     method: 'POST',
     headers: {
       'Accept': 'text/html',
