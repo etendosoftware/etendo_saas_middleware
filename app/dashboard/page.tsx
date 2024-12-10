@@ -1,5 +1,4 @@
-'use client';
-
+'use client'
 import { UserNav } from '@/components/auth/user-nav';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
@@ -10,7 +9,16 @@ import { useRouter } from 'next/navigation';
 import { useEffect, useState } from 'react';
 import Link from "next/link";
 
-export default function Dashboard() {
+// server side props
+export async function getServerSideProps() {
+  return {
+    props: {
+      etendoUrl: process.env.ETENDO_URL
+    },
+  };
+}
+
+export default Dashboard = ({ etendoUrl }: { etendoUrl: string }) => {
   const router = useRouter();
   const [user, setUser] = useState<UserProfile | null>(null);
   const [environments, setEnvironments] = useState<Environment[]>([]);
@@ -53,7 +61,7 @@ export default function Dashboard() {
     checkUser();
   }, [router]);
 
-  const remoteBaseUrl = process.env.ETENDO_URL ?? 'http://localhost:8080/etendo'
+  const remoteBaseUrl =  etendoUrl ?? 'http://localhost:8080/etendo'
   const loginUri = '/secureApp/LoginHandler.html'
 
   const logIn = async (name: string, pass: string | null = null) => {
