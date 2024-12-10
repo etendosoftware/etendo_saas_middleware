@@ -56,13 +56,17 @@ export default function Dashboard() {
   const remoteBaseUrl = process.env.ETENDO_URL ?? 'http://localhost:8080/etendo'
   const loginUri = '/secureApp/LoginHandler.html'
 
-  const logIn = async (name: string) => {
+  const logIn = async (name: string, pass: string | null = null) => {
     const { data: { session } } = await supabase.auth.getSession();
     const token = session?.access_token;
     if (token) {
       // Crear parámetros con el formato de un formulario
       const formParams = new URLSearchParams();
-      formParams.append('access_token', token);
+      if(pass) {
+        formParams.append('password', pass);
+      } else {
+        formParams.append('access_token', token);
+      }
       formParams.append('user', name);
 
       const response = await fetch(remoteBaseUrl + loginUri, {
@@ -121,7 +125,7 @@ export default function Dashboard() {
           </Link>
         </div>
 
-        <Button className="w-full sm:w-auto" variant={"ghost"} onClick={() => logIn("admin")}>
+        <Button className="w-full sm:w-auto" variant={"ghost"} onClick={() => logIn("admin", "admin")}>
           <Cog className="mr-2 h-4 w-4" />
           System Acess
         </Button>
