@@ -161,6 +161,7 @@ export default function Dashboard() {
                     Created on {new Date(env.created_at).toLocaleDateString()}
                   </p>
                   <Button onClick={() => logIn(env.name  + 'Admin')} >Admin Access</Button>
+                  <Button onClick={() => logIn(env.name  + 'User')} >User Access</Button>
                 </CardContent>
               </Card>
             ))}

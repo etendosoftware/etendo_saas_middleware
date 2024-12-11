@@ -1,4 +1,4 @@
-'use client';
+"use client";
 
 import { CheckCircle2, Circle, Loader2, AlertCircle } from 'lucide-react';
 import { useEffect, useState } from 'react';
@@ -6,43 +6,52 @@ import { useEffect, useState } from 'react';
 interface Step {
   id: string;
   label: string;
-  callback: () => Promise<void>;
+  callback: (environmentId: string) => Promise<void>;
 }
 
 const BASE_CREATION_STEPS: Step[] = [
   {
     id: 'instance',
     label: 'Creating instance',
-    callback: async () => {
+    callback: async (environmentId: string) => {
       const response = await fetch('/api/setup', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
         },
-        body: JSON.stringify({
-          inpClient: 'Cliente',
-        }),
+        body: JSON.stringify({ environmentId }),
       });
 
       if (!response.ok) {
         const errorText = await response.text();
         throw new Error(`Error creating instance: ${errorText}`);
       }
-    }
+    },
   },
   {
     id: 'organization',
     label: 'Setting up organization',
-    callback: async () => {
-      throw new Error('Organization setup failed due to missing configuration');
-    }
+    callback: async (environmentId: string) => {
+      const response = await fetch('/api/organization', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ environmentId }),
+      });
+
+      if (!response.ok) {
+        const errorText = await response.text();
+        throw new Error(`Error setting up organization: ${errorText}`);
+      }
+    },
   },
 ];
 
 export function CreationProgress({
-  onComplete,
-  environmentId,
-}: {
+                                   onComplete,
+                                   environmentId,
+                                 }: {
   onComplete: () => void;
   environmentId: string;
 }) {
@@ -50,44 +59,19 @@ export function CreationProgress({
   const [completedSteps, setCompletedSteps] = useState<string[]>([]);
   const [errorSteps, setErrorSteps] = useState<Record<string, string>>({});
 
-  const CREATION_STEPS = BASE_CREATION_STEPS.map(step => {
-    if (step.id === 'instance') {
-      return {
-        ...step,
-        callback: async () => {
-          const response = await fetch('/api/setup', {
-            method: 'POST',
-            headers: {
-              'Content-Type': 'application/json',
-            },
-            body: JSON.stringify({ environmentId })
-          });
-
-          if (!response.ok) {
-            const errorText = await response.text();
-            throw new Error(`Error creating instance: ${errorText}`);
-          }
-        }
-      };
-    }
-    return step;
-  });
-
   useEffect(() => {
     const runSteps = async () => {
-      for (let i = 0; i < CREATION_STEPS.length; i++) {
+      for (let i = 0; i < BASE_CREATION_STEPS.length; i++) {
         setCurrentStepIndex(i);
-        const step = CREATION_STEPS[i];
-
+        const step = BASE_CREATION_STEPS[i];
         try {
-          await step.callback();
+          await step.callback(environmentId);
           setCompletedSteps((prev) => [...prev, step.id]);
         } catch (error: any) {
           setErrorSteps((prev) => ({ ...prev, [step.id]: error.message }));
-          return; // Detiene la ejecución de los siguientes pasos en caso de error
+          return; // Stop execution of further steps on error
         }
       }
-
       onComplete();
     };
 
@@ -97,8 +81,11 @@ export function CreationProgress({
   return (
     <div className="space-y-6">
       <div className="space-y-4">
-        {CREATION_STEPS.map((step, index) => {
-          const isActive = index === currentStepIndex && !errorSteps[step.id] && !completedSteps.includes(step.id);
+        {BASE_CREATION_STEPS.map((step, index) => {
+          const isActive =
+            index === currentStepIndex &&
+            !errorSteps[step.id] &&
+            !completedSteps.includes(step.id);
           const isCompleted = completedSteps.includes(step.id);
           const hasError = !!errorSteps[step.id];
 
