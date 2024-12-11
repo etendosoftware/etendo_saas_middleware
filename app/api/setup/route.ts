@@ -20,6 +20,12 @@ export async function POST(request: Request) {
   formData.append('inpLastFieldChanged', '');
   formData.append('inpCurrency', '102');
 
+  console.info("Creating client for environment: " + environment.name);
+  console.info("Form data: " + JSON.stringify(Object.fromEntries(formData.entries())));
+  console.info("Sending request to Etendo");
+  console.info("URL: " + process.env.ETENDO_URL + '/ad_forms/InitialClientSetup.html?stateless=true');
+  console.info("Authorization: Bearer " + process.env.ETENDO_TOKEN);
+
   const response = await fetch(process.env.ETENDO_URL + '/ad_forms/InitialClientSetup.html?stateless=true', {
     method: 'POST',
     headers: {
