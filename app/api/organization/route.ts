@@ -45,10 +45,10 @@ export async function POST(request: Request) {
     // Prepare the form data as per the curl request
     const formData = new FormData();
     formData.append('inpOrgUser', environment.userUser); // Static value; adjust if dynamic
-    formData.append('inpNodes', '7BFA8FF057AB46CAAB2FAAED8B870E32'); // Static or dynamic based on environment
+    formData.append('inpNodes', 'F117F665CEAD444080E26D6791177E0E'); // Static or dynamic based on environment
     formData.append('inpPassword', environment.userPass); // Ensure this is securely handled
     formData.append('inpConfirmPassword', environment.userPass); // Ensure this is securely handled
-    formData.append('inpNodeId', '7BFA8FF057AB46CAAB2FAAED8B870E32'); // Static or dynamic
+    formData.append('inpNodeId', 'F117F665CEAD444080E26D6791177E0E'); // Static or dynamic
     formData.append('inpcLocationId', ''); // Empty as per curl
     formData.append('Command', 'OK');
     formData.append('inpTreeClass', 'org.openbravo.erpCommon.modules.ModuleReferenceDataOrgTree');
