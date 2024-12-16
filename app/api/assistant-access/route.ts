@@ -21,7 +21,7 @@ export async function POST(request: Request): Promise<NextResponse> {
     const basicAuth = btoa(`${environment.adminUser}:${environment.adminPass}`);
 
     // Construct the Role URL
-    const roleUrl = `${process.env.ETENDO_URL}/ws/com.etendoerp.etendorx.datasource/Role?q=name==${environment.userUser}&_startRow=0&_endRow=10`;
+    const roleUrl = `${process.env.ETENDO_URL}/ws/com.etendoerp.etendorx.datasource/Role?_startRow=0&_endRow=10`;
     const respRole = await fetch(roleUrl, {
       method: 'GET',
       headers: {

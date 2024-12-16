@@ -61,6 +61,11 @@ export async function POST(request: Request) {
     // Append the file to the FormData
     formData.append('inpFile', coaFileBlob, coaFileName);
 
+    console.log("Creating organization for environment:", environment.name);
+    console.log("Form data:", Object.fromEntries(formData.entries()));
+    console.log("Bearer token:", swsTokenData.token);
+    console.log("Sending request to Etendo");
+
     const response = await fetch(`${process.env.ETENDO_URL}/ad_forms/InitialOrgSetup.html?stateless=true`, {
       method: 'POST',
       headers: {
