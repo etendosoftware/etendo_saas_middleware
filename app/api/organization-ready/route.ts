@@ -4,10 +4,8 @@ import {encodeToBase64} from "next/dist/build/webpack/loaders/utils";
 
 export async function POST(request: Request) {
   try {
-    // Parse the incoming JSON request to get environmentId
     const { environmentId } = await request.json();
 
-    // Fetch environment details from Supabase
     const { data: environment, error } = await supabase
       .from('environments')
       .select('*')
@@ -37,7 +35,6 @@ export async function POST(request: Request) {
       return NextResponse.json({ error: "Autenticación fallida" }, { status: swsResponse.status });
     }
 
-    // Obtener el token y las cookies de la respuesta de login
     const swsTokenData = await swsResponse.json();
 
     const org = swsTokenData.roleList[0].orgList[1];
@@ -46,11 +43,24 @@ export async function POST(request: Request) {
 
     const basicAuth = btoa(`${environment.adminUser}:${environment.adminPass}`);
 
-    // Configurar los encabezados
-    // Ahora, realizar la llamada equivalente a la solicitud curl proporcionada
+
+    const orgIsReadyUrl = `${process.env.ETENDO_URL}/saas_process/orgIsReady?inpisready=Y&strProcessing=Y&inpcascad=N&inpadOrgId=${org.id}&mode=prepare`
+
+    const orgIsReadyResponse = await fetch(orgIsReadyUrl, {
+      method: 'POST',
+      headers: {
+        'Authorization': `Basic ${basicAuth}`,
+      }
+    });
+
+    if(!orgIsReadyResponse.ok) {
+      const errorText = await orgIsReadyResponse.text();
+      console.error("Error en la respuesta de orgIsReady:", errorText);
+      return NextResponse.json({ error: "Falló la creación de la organización en orgIsReady", details: errorText }, { status: orgIsReadyResponse.status });
+    }
+
     const organizationEditionUrl = `${process.env.ETENDO_URL}/saas_process/orgIsReady?inpisready=Y&strProcessing=Y&inpcascad=N&inpadOrgId=${org.id}`
 
-    // Enviar la solicitud POST a Organization_Edition.html
     const organizationEditionResponse = await fetch(organizationEditionUrl, {
       method: 'POST',
       headers: {
