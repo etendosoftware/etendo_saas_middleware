@@ -3,11 +3,15 @@
 import { LoginButton } from '@/components/auth/login-button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { supabase } from '@/lib/supabase';
+import { dictionary } from '@/translations';
 import { Boxes } from 'lucide-react';
 import { useRouter } from 'next/navigation';
 import { useEffect, useState } from 'react';
 
-export default function Home() {
+export default function Home({ params }: {
+  params: { locale: 'en' | 'es' };
+}) {
+  const t = dictionary[params.locale] ?? dictionary.en;
   const router = useRouter();
   const [loading, setLoading] = useState(true);
 
@@ -34,16 +38,16 @@ export default function Home() {
           <div className="flex justify-center mb-4">
             <Boxes className="h-12 w-12 text-primary" />
           </div>
-          <CardTitle>Welcome to Environment Manager</CardTitle>
+          <CardTitle>{t.login.welcomeTitle}</CardTitle>
           <CardDescription>
-            Sign in to manage your environments and settings
+            {t.login.welcomeDescription}
           </CardDescription>
         </CardHeader>
         <CardContent>
           <div className="space-y-4">
             <LoginButton />
             <div className="text-center text-sm text-muted-foreground">
-              <p>By signing in, you agree to our Terms of Service and Privacy Policy</p>
+              <p>{t.login.signInTerms}</p>
             </div>
           </div>
         </CardContent>
