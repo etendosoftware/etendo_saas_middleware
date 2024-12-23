@@ -1,6 +1,5 @@
 import { NextResponse } from 'next/server';
 import { supabase } from "@/lib/supabase";
-import { encodeToBase64 } from "next/dist/build/webpack/loaders/utils";
 
 /**
  * Handles POST requests to mark an organization as ready for a given environment.
@@ -56,10 +55,24 @@ export async function POST(request: Request) {
     // Encode admin credentials for basic authentication
     const basicAuth = btoa(`${environment.adminUser}:${environment.adminPass}`);
 
-    // Construct the Organization Edition URL
-    const organizationEditionUrl = `${process.env.ETENDO_URL}/saas_process/orgIsReady?inpisready=Y&strProcessing=Y&inpcascad=N&inpadOrgId=${org.id}`;
 
-    // Send the POST request to Organization_Edition.html
+    const orgIsReadyUrl = `${process.env.ETENDO_URL}/saas_process/orgIsReady?inpisready=Y&strProcessing=Y&inpcascad=N&inpadOrgId=${org.id}&mode=prepare`
+
+    const orgIsReadyResponse = await fetch(orgIsReadyUrl, {
+      method: 'POST',
+      headers: {
+        'Authorization': `Basic ${basicAuth}`,
+      }
+    });
+
+    if(!orgIsReadyResponse.ok) {
+      const errorText = await orgIsReadyResponse.text();
+      console.error("Error en la respuesta de orgIsReady:", errorText);
+      return NextResponse.json({ error: "Falló la creación de la organización en orgIsReady", details: errorText }, { status: orgIsReadyResponse.status });
+    }
+
+    const organizationEditionUrl = `${process.env.ETENDO_URL}/saas_process/orgIsReady?inpisready=Y&strProcessing=Y&inpcascad=N&inpadOrgId=${org.id}`
+
     const organizationEditionResponse = await fetch(organizationEditionUrl, {
       method: 'POST',
       headers: {

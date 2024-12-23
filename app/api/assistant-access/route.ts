@@ -29,7 +29,7 @@ export async function POST(request: Request): Promise<NextResponse> {
     const basicAuth = btoa(`${environment.adminUser}:${environment.adminPass}`);
 
     // Construct the Role URL
-    const roleUrl = `${process.env.ETENDO_URL}/ws/com.etendoerp.etendorx.datasource/Role?q=name==${environment.userUser}&_startRow=0&_endRow=10`;
+    const roleUrl = `${process.env.ETENDO_URL}/ws/com.etendoerp.etendorx.datasource/Role`;
     const respRole = await fetch(roleUrl, {
       method: 'GET',
       headers: {
@@ -45,62 +45,110 @@ export async function POST(request: Request): Promise<NextResponse> {
     }
 
     // Parse the role response
-    const role = await respRole.json();
+    const roles = await respRole.json();
 
     // Get the list of assistants from environment variables
-    const assistants = process.env.COPILOT_ASSISTANTS?.split(',').map(a => a.trim()).filter(a => a);
+    const assistants = process.env.ASSISTANT_ACCESS?.split(',').map(a => a.trim()).filter(a => a);
 
     // Check if there are any assistants provided
     if (assistants && assistants.length > 0) {
       for (const assistant of assistants) {
-        const body = {
-          copilotApp: assistant,
-          role: role.response.data[0]?.id
-        };
+        for (const role of roles.response.data) {
+          const body = {
+            copilotApp: assistant,
+            role: role.id
+          };
 
-        // Handle error if role ID is not found
-        if (!body.role) {
-          console.error(`Role ID not found for assistant: ${assistant}`);
-          return NextResponse.json({ error: `Role ID not found for assistant: ${assistant}` }, { status: 400 });
+          // Handle error if role ID is not found
+          if (!body.role) {
+            console.error(`Role ID not found for assistant: ${assistant}`);
+            return NextResponse.json({error: `Role ID not found for assistant: ${assistant}`}, {status: 400});
+          }
+
+          console.info("Sending request to Etendo");
+          console.info("URL:", `${process.env.ETENDO_URL}/ws/com.etendoerp.etendorx.datasource/AssistantAccess`);
+          console.info("Body:", body);
+
+          // Send the POST request to Etendo
+          const response = await fetch(`${process.env.ETENDO_URL}/ws/com.etendoerp.etendorx.datasource/AssistantAccess`, {
+            method: 'POST',
+            headers: {
+              'Authorization': `Basic ${basicAuth}`,
+              'Content-Type': 'application/json'
+            },
+            body: JSON.stringify(body)
+          });
+
+          console.log("Response status:", response.status);
+
+          // Handle error if assistant access creation fails
+          if (!response.ok) {
+            const errorText = await response.text();
+            console.error("Error response from Etendo:", errorText);
+            return NextResponse.json({
+              error: "Failed to create assistant access",
+              details: errorText
+            }, {status: response.status});
+          }
+
+          const responseData = await response.text();
+          console.log("Response data:", responseData);
         }
-
-        console.info("Sending request to Etendo");
-        console.info("URL:", `${process.env.ETENDO_URL}/ws/com.etendoerp.etendorx.datasource/AssistantAccess`);
-        console.info("Body:", body);
-
-        // Send the POST request to Etendo
-        const response = await fetch(`${process.env.ETENDO_URL}/ws/com.etendoerp.etendorx.datasource/AssistantAccess`, {
-          method: 'POST',
-          headers: {
-            'Authorization': `Basic ${basicAuth}`,
-            'Content-Type': 'application/json'
-          },
-          body: JSON.stringify(body)
-        });
-
-        console.log("Response status:", response.status);
-
-        // Handle error if assistant access creation fails
-        if (!response.ok) {
-          const errorText = await response.text();
-          console.error("Error response from Etendo:", errorText);
-          return NextResponse.json({
-            error: "Failed to create assistant access",
-            details: errorText
-          }, { status: response.status });
-        }
-
-        const responseData = await response.text();
-        console.log("Response data:", responseData);
       }
 
-      // Return success response if all assistants are accessed successfully
-      return NextResponse.json({ message: "Assistants accessed successfully" }, { status: 200 });
+    } else {
+      console.warn("No assistants provided in COPILOT_ASSISTANTS");
+    }
+    const webhooks = process.env.WEBHOOK_ACCESS?.split(',').map(a => a.trim()).filter(a => a);
+
+    if (webhooks && webhooks.length > 0) {
+      for (const webhook of webhooks) {
+        for (const role of roles.response.data) {
+          const body = {
+            smfwheDefinedwebhook: webhook,
+            role: role.id
+          };
+
+          if (!body.role) {
+            console.error(`Role ID not found for assistant: ${webhook}`);
+            return NextResponse.json({error: `Role ID not found for assistant: ${webhook}`}, {status: 400});
+          }
+
+          console.info("Sending request to Etendo");
+          console.info("URL:", `${process.env.ETENDO_URL}/ws/com.etendoerp.etendorx.datasource/WebhookRoleAccess`);
+          console.info("Body:", body);
+
+          // Send the POST request to Etendo
+          const response = await fetch(`${process.env.ETENDO_URL}/ws/com.etendoerp.etendorx.datasource/WebhookRoleAccess`, {
+            method: 'POST',
+            headers: {
+              'Authorization': `Basic ${basicAuth}`,
+              'Content-Type': 'application/json'
+            },
+            body: JSON.stringify(body)
+          });
+
+          console.log("Response status:", response.status);
+
+          if (!response.ok) {
+            const errorText = await response.text();
+            console.error("Error response from Etendo:", errorText);
+            return NextResponse.json({
+              error: "Failed to create assistant access",
+              details: errorText
+            }, {status: response.status});
+          }
+
+          const responseData = await response.text();
+          console.log("Response data:", responseData);
+        }
+      }
+
     } else {
       // Handle case where no assistants are provided
       console.warn("No assistants provided in COPILOT_ASSISTANTS");
-      return NextResponse.json({ error: "No assistants provided" }, { status: 400 });
     }
+    return NextResponse.json({ message: "Assistants accessed successfully" }, { status: 200 });
   } catch (err) {
     // Handle unexpected errors
     console.error("Unexpected error:", err);
