@@ -1,6 +1,12 @@
 import { NextResponse } from 'next/server';
 import { supabase } from "@/lib/supabase";
 
+/**
+ * Handles POST requests to provide assistant access.
+ *
+ * @param {Request} request - The incoming request object.
+ * @returns {Promise<NextResponse>} - The response object.
+ */
 export async function POST(request: Request): Promise<NextResponse> {
   try {
     // Parse the incoming JSON request to get environmentId
@@ -13,11 +19,13 @@ export async function POST(request: Request): Promise<NextResponse> {
       .eq('id', environmentId)
       .single();
 
+    // Handle error if environment is not found
     if (error || !environment) {
       console.error("Error fetching environment:", error);
       return NextResponse.json({ error: "Environment not found" }, { status: 404 });
     }
 
+    // Encode admin credentials for basic authentication
     const basicAuth = btoa(`${environment.adminUser}:${environment.adminPass}`);
 
     // Construct the Role URL
@@ -29,16 +37,20 @@ export async function POST(request: Request): Promise<NextResponse> {
       }
     });
 
+    // Handle error if role fetching fails
     if (!respRole.ok) {
       const errorText = await respRole.text();
       console.error("Error fetching role:", errorText);
       return NextResponse.json({ error: "Failed to fetch role", details: errorText }, { status: respRole.status });
     }
 
+    // Parse the role response
     const role = await respRole.json();
 
+    // Get the list of assistants from environment variables
     const assistants = process.env.COPILOT_ASSISTANTS?.split(',').map(a => a.trim()).filter(a => a);
 
+    // Check if there are any assistants provided
     if (assistants && assistants.length > 0) {
       for (const assistant of assistants) {
         const body = {
@@ -46,6 +58,7 @@ export async function POST(request: Request): Promise<NextResponse> {
           role: role.response.data[0]?.id
         };
 
+        // Handle error if role ID is not found
         if (!body.role) {
           console.error(`Role ID not found for assistant: ${assistant}`);
           return NextResponse.json({ error: `Role ID not found for assistant: ${assistant}` }, { status: 400 });
@@ -67,6 +80,7 @@ export async function POST(request: Request): Promise<NextResponse> {
 
         console.log("Response status:", response.status);
 
+        // Handle error if assistant access creation fails
         if (!response.ok) {
           const errorText = await response.text();
           console.error("Error response from Etendo:", errorText);
@@ -80,12 +94,15 @@ export async function POST(request: Request): Promise<NextResponse> {
         console.log("Response data:", responseData);
       }
 
+      // Return success response if all assistants are accessed successfully
       return NextResponse.json({ message: "Assistants accessed successfully" }, { status: 200 });
     } else {
+      // Handle case where no assistants are provided
       console.warn("No assistants provided in COPILOT_ASSISTANTS");
       return NextResponse.json({ error: "No assistants provided" }, { status: 400 });
     }
   } catch (err) {
+    // Handle unexpected errors
     console.error("Unexpected error:", err);
     return NextResponse.json({ error: "Internal Server Error" }, { status: 500 });
   }

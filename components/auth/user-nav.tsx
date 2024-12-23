@@ -5,7 +5,6 @@ import { Button } from '@/components/ui/button';
 import {
   DropdownMenu,
   DropdownMenuContent,
-  DropdownMenuGroup,
   DropdownMenuItem,
   DropdownMenuLabel,
   DropdownMenuSeparator,
@@ -20,10 +19,21 @@ interface UserNavProps {
   user: UserProfile;
 }
 
+/**
+ * Component for the user navigation menu.
+ *
+ * @component
+ * @param {UserNavProps} props - The properties for the UserNav component.
+ * @param {UserProfile} props.user - The user profile object.
+ */
 export function UserNav({ user }: UserNavProps) {
   const router = useRouter();
 
   console.log("UserNav", user);
+
+  /**
+   * Handles the sign-out process.
+   */
   const handleSignOut = async () => {
     await supabase.auth.signOut();
     router.refresh();

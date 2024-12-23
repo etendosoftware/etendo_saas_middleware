@@ -1,11 +1,20 @@
 import { NextResponse } from 'next/server';
-import {supabase} from "@/lib/supabase";
+import { supabase } from "@/lib/supabase";
 
+/**
+ * Handles POST requests to create a client for a given environment.
+ *
+ * @param {Request} request - The incoming request object.
+ * @returns {Promise<NextResponse>} - The response object.
+ */
 export async function POST(request: Request) {
+  // Parse the incoming JSON request to get environmentId
   const { environmentId } = await request.json();
 
-  const {data: environment} = await supabase.from('environments').select().eq('id', environmentId).single();
+  // Fetch environment details from Supabase
+  const { data: environment } = await supabase.from('environments').select().eq('id', environmentId).single();
 
+  // Prepare the form data for the client creation request
   const formData = new FormData();
   formData.append('inpClientUser', environment.adminUser);
   formData.append('inpNodes', '0');
@@ -20,12 +29,14 @@ export async function POST(request: Request) {
   formData.append('inpLastFieldChanged', '');
   formData.append('inpCurrency', '102');
 
+  // Log the form data and request details
   console.info("Creating client for environment: " + environment.name);
   console.info("Form data: " + JSON.stringify(Object.fromEntries(formData.entries())));
   console.info("Sending request to Etendo");
   console.info("URL: " + process.env.ETENDO_URL + '/ad_forms/InitialClientSetup.html?stateless=true');
   console.info("Authorization: Bearer " + process.env.ETENDO_TOKEN);
 
+  // Send the POST request to create the client
   const response = await fetch(process.env.ETENDO_URL + '/ad_forms/InitialClientSetup.html?stateless=true', {
     method: 'POST',
     headers: {
@@ -37,12 +48,16 @@ export async function POST(request: Request) {
     body: formData
   });
 
+  // Log the response status
   console.log("Response status: " + response.status);
+
+  // Handle error if client creation fails
   if (!response.ok) {
     const text = await response.text();
     return new NextResponse(text, { status: response.status });
   }
 
+  // Return the response data
   const data = await response.text();
   return new NextResponse(data, { status: 200 });
 }

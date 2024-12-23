@@ -1,13 +1,13 @@
 'use client';
 
-import {UserNav} from '@/components/auth/user-nav';
-import {Button} from '@/components/ui/button';
-import {Card, CardContent, CardDescription, CardHeader, CardTitle} from '@/components/ui/card';
-import {supabase} from '@/lib/supabase';
-import {Environment, UserProfile} from '@/lib/types';
-import {Cog, Plus} from 'lucide-react';
-import {useRouter} from 'next/navigation';
-import {useEffect, useState} from 'react';
+import { UserNav } from '@/components/auth/user-nav';
+import { Button } from '@/components/ui/button';
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import { supabase } from '@/lib/supabase';
+import { Environment, UserProfile } from '@/lib/types';
+import { Cog, Plus } from 'lucide-react';
+import { useRouter } from 'next/navigation';
+import { useEffect, useState } from 'react';
 import Link from "next/link";
 
 export default function Dashboard() {
@@ -18,14 +18,14 @@ export default function Dashboard() {
 
   useEffect(() => {
     const checkUser = async () => {
-      const {data: {session}} = await supabase.auth.getSession();
+      const { data: { session } } = await supabase.auth.getSession();
 
       if (!session) {
         router.push('/');
         return;
       }
 
-      const {data: profile} = await supabase
+      const { data: profile } = await supabase
         .from('profiles')
         .select('*')
         .eq('id', session.user.id)
@@ -38,7 +38,7 @@ export default function Dashboard() {
         setUser(profile);
       }
 
-      const {data: envs} = await supabase
+      const { data: envs } = await supabase
         .from('environments')
         .select('*')
         .eq('created_by', session.user.id);
@@ -56,11 +56,17 @@ export default function Dashboard() {
   const remoteBaseUrl = process.env.NEXT_PUBLIC_ETENDO_URL ?? 'http://localhost:8080/etendo'
   const loginUri = '/secureApp/LoginHandler.html'
 
+  /**
+   * Logs in to the remote system using the provided username and password.
+   *
+   * @param {string} name - The username to log in with.
+   * @param {string | null} [pass=null] - The password to log in with. If not provided, the access token will be used.
+   */
   const logIn = async (name: string, pass: string | null = null) => {
-    const {data: {session}} = await supabase.auth.getSession();
+    const { data: { session } } = await supabase.auth.getSession();
     const token = session?.access_token;
     if (token) {
-      // Crear parámetros con el formato de un formulario
+      // Create form parameters
       const formParams = new URLSearchParams();
       if (pass) {
         formParams.append('password', pass);
@@ -86,7 +92,7 @@ export default function Dashboard() {
       const data = await response.json();
       console.log('Respuesta JSON:', data);
 
-      // Si la respuesta contiene `target`
+      // Redirect if the response contains `target`
       if (data && data.target) {
         window.location.href = data.target;
       } else {
@@ -94,6 +100,7 @@ export default function Dashboard() {
       }
     }
   }
+
   if (loading) {
     return null;
   }
@@ -106,7 +113,7 @@ export default function Dashboard() {
           <h1 className="text-2xl font-bold bg-gradient-to-r from-primary to-primary/60 bg-clip-text text-transparent">
             Environment Manager
           </h1>
-          {user && <UserNav user={user}/>}
+          {user && <UserNav user={user} />}
         </div>
       </header>
 
@@ -120,21 +127,21 @@ export default function Dashboard() {
           </div>
           <Link href="/dashboard/new" passHref>
             <Button className="w-full sm:w-auto">
-              <Plus className="mr-2 h-4 w-4"/>
+              <Plus className="mr-2 h-4 w-4" />
               New Environment
             </Button>
           </Link>
         </div>
 
         <Button className="w-full sm:w-auto" variant={"ghost"} onClick={() => logIn("admin", "admin")}>
-          <Cog className="mr-2 h-4 w-4"/>
+          <Cog className="mr-2 h-4 w-4" />
           System Acess
         </Button>
         {environments.length === 0 ? (
           <Card className="border-dashed">
             <CardHeader className="space-y-4">
               <div className="mx-auto bg-primary/10 w-16 h-16 rounded-full flex items-center justify-center">
-                <Plus className="h-8 w-8 text-primary"/>
+                <Plus className="h-8 w-8 text-primary" />
               </div>
               <div className="space-y-2 text-center">
                 <CardTitle>No environments yet</CardTitle>

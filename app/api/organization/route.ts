@@ -1,55 +1,51 @@
-import {NextResponse} from 'next/server';
-import {supabase} from "@/lib/supabase";
+import { NextResponse } from 'next/server';
+import { supabase } from "@/lib/supabase";
 
+/**
+ * Handles POST requests to create an organization for a given environment.
+ *
+ * @param {Request} request - The incoming request object.
+ * @returns {Promise<NextResponse>} - The response object.
+ */
 export async function POST(request: Request) {
   try {
     // Parse the incoming JSON request to get environmentId
-    const {environmentId} = await request.json();
+    const { environmentId } = await request.json();
 
     // Fetch environment details from Supabase
-    const {data: environment, error} = await supabase
+    const { data: environment, error } = await supabase
       .from('environments')
       .select('*')
       .eq('id', environmentId)
       .single();
 
+    // Handle error if environment is not found
     if (error || !environment) {
       console.error("Error fetching environment:", error);
-      return NextResponse.json({error: "Environment not found"}, {status: 404});
+      return NextResponse.json({ error: "Environment not found" }, { status: 404 });
     }
 
     // Get SWS Token
-    /**
-     * curl --location 'https://erp.saas.labs.etendo.cloud/etendo/sws/login' \
-     * --header 'Content-Type: application/json' \
-     * --data '{
-     *     "username": "admin",
-     *     "password": "admin",
-     *     "role": "0"
-     * }'
-     */
-    const swsToken = await fetch(`${process.env.ETENDO_URL}/sws/login`,
-      {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          username: environment.adminUser,
-          password: environment.adminPass,
-        })
-      }
-    );
+    const swsToken = await fetch(`${process.env.ETENDO_URL}/sws/login`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({
+        username: environment.adminUser,
+        password: environment.adminPass,
+      })
+    });
     const swsTokenData = await swsToken.json();
 
     // Prepare the form data as per the curl request
     const formData = new FormData();
-    formData.append('inpOrgUser', environment.userUser); // Static value; adjust if dynamic
-    formData.append('inpNodes', 'F117F665CEAD444080E26D6791177E0E'); // Static or dynamic based on environment
-    formData.append('inpPassword', environment.userPass); // Ensure this is securely handled
-    formData.append('inpConfirmPassword', environment.userPass); // Ensure this is securely handled
-    formData.append('inpNodeId', 'F117F665CEAD444080E26D6791177E0E'); // Static or dynamic
-    formData.append('inpcLocationId', ''); // Empty as per curl
+    formData.append('inpOrgUser', environment.userUser);
+    formData.append('inpNodes', 'F117F665CEAD444080E26D6791177E0E');
+    formData.append('inpPassword', environment.userPass);
+    formData.append('inpConfirmPassword', environment.userPass);
+    formData.append('inpNodeId', 'F117F665CEAD444080E26D6791177E0E');
+    formData.append('inpcLocationId', '');
     formData.append('Command', 'OK');
     formData.append('inpTreeClass', 'org.openbravo.erpCommon.modules.ModuleReferenceDataOrgTree');
     formData.append('inpParentOrg', '0');
@@ -71,27 +67,26 @@ export async function POST(request: Request) {
       method: 'POST',
       headers: {
         'Accept': 'text/html',
-        'Referer': `${process.env.ETENDO_URL}/etendo/ad_forms/InitialOrgSetup.html?noprefs=true&hideMenu=true&Command=DEFAULT`,
-        'User-Agent': 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/130.0.0.0 Safari/537.36',
         'Authorization': `Bearer ${swsTokenData.token}`,
-        // Note: When using FormData, you should NOT set the 'Content-Type' header manually.
-        // The browser will set it, including the correct boundary.
       },
       body: formData
     });
 
     console.log("Response status:", response.status);
 
+    // Handle error if organization creation fails
     if (!response.ok) {
       const errorText = await response.text();
       console.error("Error response from Etendo:", errorText);
-      return NextResponse.json({error: "Failed to create organization", details: errorText}, {status: response.status});
+      return NextResponse.json({ error: "Failed to create organization", details: errorText }, { status: response.status });
     }
 
-    return new NextResponse("", {status: 200, headers: {'Content-Type': 'text/html'}});
+    // Return success response
+    return new NextResponse("", { status: 200, headers: { 'Content-Type': 'text/html' } });
 
   } catch (err) {
+    // Handle unexpected errors
     console.error("Unexpected error:", err);
-    return NextResponse.json({error: "Internal Server Error"}, {status: 500});
+    return NextResponse.json({ error: "Internal Server Error" }, { status: 500 });
   }
 }
