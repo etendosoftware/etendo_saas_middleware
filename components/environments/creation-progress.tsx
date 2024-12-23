@@ -1,26 +1,38 @@
 "use client";
 
 import { CheckCircle2, Circle, Loader2, AlertCircle } from 'lucide-react';
-import {useCallback, useEffect, useRef, useState} from 'react';
-import {Step} from '../../app/dashboard/new/page';
+import { useCallback, useEffect, useRef, useState } from 'react';
+import { Step } from '../../app/dashboard/new/page';
 
+/**
+ * Component to display the progress of environment creation steps.
+ *
+ * @component
+ * @param {Object} props - The properties for the CreationProgress component.
+ * @param {Function} props.onComplete - Callback function to be called when all steps are completed.
+ * @param {string} props.environmentId - The ID of the environment being created.
+ * @param {Step[]} props.steps - Array of steps to be executed for environment creation.
+ */
 export function CreationProgress({
-                                   onComplete,
-                                   environmentId,
+  onComplete,
+  environmentId,
   steps
-                                 }: {
+}: {
   onComplete: () => void;
   environmentId: string;
   steps: Step[];
 }) {
-  console.log("🚩 Creando entorno con ID:", environmentId);
+  console.log("🚩 Creating environment with ID:", environmentId);
   const [currentStepIndex, setCurrentStepIndex] = useState(0);
   const [completedSteps, setCompletedSteps] = useState<string[]>([]);
   const [errorSteps, setErrorSteps] = useState<Record<string, string>>({});
 
-  // Guardar en un ref si ya se ejecutó runSteps
+  // Ref to track if runSteps has already been executed
   const hasRunRef = useRef(false);
 
+  /**
+   * Function to execute the steps sequentially.
+   */
   const runSteps = useCallback(async () => {
     console.log("🚩 Run steps");
     for (let i = 0; i < steps.length; i++) {
@@ -31,16 +43,16 @@ export function CreationProgress({
         setCompletedSteps((prev) => [...prev, step.id]);
       } catch (error: any) {
         setErrorSteps((prev) => ({ ...prev, [step.id]: error.message }));
-        console.error(`Error en el paso ${step.label}: ${error.message}`);
-        return; // Detiene la ejecución si hay un error
+        console.error(`Error in step ${step.label}: ${error.message}`);
+        return; // Stop execution if there is an error
       }
     }
     onComplete();
   }, [steps, environmentId, onComplete]);
 
   useEffect(() => {
-    // Este efecto se ejecutará en cada render, pero gracias a hasRunRef,
-    // runSteps se iniciará solo la primera vez.
+    // This effect will run on every render, but thanks to hasRunRef,
+    // runSteps will only be initiated the first time.
     if (!hasRunRef.current) {
       hasRunRef.current = true;
       runSteps();

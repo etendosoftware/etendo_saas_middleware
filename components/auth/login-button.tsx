@@ -4,7 +4,15 @@ import { Button } from '@/components/ui/button';
 import { supabase } from '@/lib/supabase';
 import { LogIn } from 'lucide-react';
 
+/**
+ * Component for a login button that uses Supabase OAuth with Google.
+ *
+ * @component
+ */
 export function LoginButton() {
+  /**
+   * Handles the login process using Supabase OAuth with Google.
+   */
   const handleLogin = async () => {
     await supabase.auth.signInWithOAuth({
       provider: 'google',

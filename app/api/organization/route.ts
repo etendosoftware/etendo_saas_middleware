@@ -1,16 +1,25 @@
 import {NextResponse} from 'next/server';
 import {supabase} from "@/lib/supabase";
 
+/**
+ * Handles POST requests to create an organization for a given environment.
+ *
+ * @param {Request} request - The incoming request object.
+ * @returns {Promise<NextResponse>} - The response object.
+ */
 export async function POST(request: Request) {
   try {
+    // Parse the incoming JSON request to get environmentId
     const { environmentId } = await request.json();
 
+    // Fetch environment details from Supabase
     const { data: environment, error } = await supabase
       .from('environments')
       .select('*')
       .eq('id', environmentId)
       .single();
 
+    // Handle error if environment is not found
     if (error || !environment) {
       console.error("Error fetching environment:", error);
       return NextResponse.json({ error: "Environment not found" }, { status: 404 });
@@ -28,6 +37,7 @@ export async function POST(request: Request) {
     });
     const swsTokenData = await swsToken.json();
 
+    // Prepare the form data as per the curl request
     const formData = new FormData();
     formData.append('inpOrgUser', environment.userUser);
     formData.append('inpNodes', 'F117F665CEAD444080E26D6791177E0E');
@@ -70,8 +80,6 @@ export async function POST(request: Request) {
       method: 'POST',
       headers: {
         'Accept': 'text/html',
-        'Referer': `${process.env.ETENDO_URL}/etendo/ad_forms/InitialOrgSetup.html?noprefs=true&hideMenu=true&Command=DEFAULT`,
-        'User-Agent': 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/130.0.0.0 Safari/537.36',
         'Authorization': `Bearer ${swsTokenData.token}`,
       },
       body: formData,
@@ -79,15 +87,15 @@ export async function POST(request: Request) {
 
     console.log("Response status:", response.status);
 
+    // Handle error if organization creation fails
     if (!response.ok) {
       const errorText = await response.text();
       console.error("Error response from Etendo:", errorText);
       return NextResponse.json({error: "Failed to create organization", details: errorText}, {status: response.status});
     }
 
-    console.log("Response text:", await response.text());
-
-    return new NextResponse("", {status: 200, headers: {'Content-Type': 'text/html'}});
+    // Return success response
+    return new NextResponse("", { status: 200, headers: { 'Content-Type': 'text/html' } });
 
   } catch (err) {
     console.error("Unexpected error:", err);

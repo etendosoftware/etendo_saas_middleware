@@ -1,53 +1,54 @@
-# Etapa 1: Construcción de la aplicación
+# Stage 1: Build the application
 FROM node:18-alpine AS builder
 
+# Install necessary build tools
 RUN apk add --no-cache python3 make g++
 
-# Establece el directorio de trabajo
+# Set the working directory
 WORKDIR /app
 
-# Copia los archivos de package.json y package-lock.json (o yarn.lock)
+# Copy package.json and package-lock.json (or yarn.lock) files
 COPY etendo_saas_middleware/package*.json ./
-# Si usas Yarn, usa:
+# If using Yarn, use:
 # COPY yarn.lock ./
 
-# Instala las dependencias
+# Install dependencies
 RUN npm install
-# Si usas Yarn, usa:
+# If using Yarn, use:
 # RUN yarn install
 
-# Copia el resto del código de la aplicación
+# Copy the rest of the application code
 COPY etendo_saas_middleware/. .
 
-# Construye la aplicación para producción
+# Build the application for production
 RUN npm run build
-# Si usas Yarn, usa:
+# If using Yarn, use:
 # RUN yarn build
 
-# Etapa 2: Producción
+# Stage 2: Production
 FROM node:18-alpine
 
+# Install necessary runtime tools
 RUN apk add --no-cache python3 make g++
-# Establece el directorio de trabajo
+
+# Set the working directory
 WORKDIR /app
 
-# Copia solo las dependencias de producción desde la etapa de construcción
+# Copy only production dependencies from the build stage
 COPY etendo_saas_middleware/package*.json ./
-# Si usas Yarn, usa:
+# If using Yarn, use:
 # COPY yarn.lock ./
 
 RUN npm install --production
-# Si usas Yarn, usa:
+# If using Yarn, use:
 # RUN yarn install --production
 
-# Copia los archivos de construcción desde la etapa anterior
+# Copy build artifacts from the build stage
 COPY --from=builder /app/.next ./.next
 COPY --from=builder /app/next.config.js ./
 
-# Exponer el puerto que utilizará la aplicación
+# Expose the port the application will use
 EXPOSE 3000
 
-# Comando para iniciar la aplicación
+# Command to start the application
 CMD ["npm", "start"]
-# Si usas Yarn, usa:
-# CMD ["yarn", "start"]
