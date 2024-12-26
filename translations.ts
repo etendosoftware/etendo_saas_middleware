@@ -40,14 +40,18 @@ export const dictionary = {
       userAccess: 'User Access',
     },
     login: {
-      welcomeTitle: 'Welcome to Environment Manager',
-      welcomeDescription: 'Sign in to manage your environments and settings',
-      signInTerms: 'By signing in, you agree to our Terms of Service and Privacy Policy',
+      welcomeTitle: 'Welcome!',
+      welcomeDescription: 'Sign in with your preferred service.',
+      signInWithGoogle: 'Sign in with Google',
     },
     languages: {
       english: 'English',
       spanish: 'Spanish',
     },
+    redirect: {
+      checkingEnvironment: "Checking your environment...",
+      pleaseWait: "Please wait a moment",
+    }
   },
 
   es: {
@@ -91,13 +95,17 @@ export const dictionary = {
       userAccess: 'Acceso Usuario',
     },
     login: {
-      welcomeTitle: 'Bienvenido a Environment Manager',
-      welcomeDescription: 'Inicia sesión para administrar tus entornos y configuraciones',
-      signInTerms: 'Al iniciar sesión, aceptas nuestros Términos de servicio y Política de privacidad',
+      welcomeTitle: '¡Bienvenido!',
+      welcomeDescription: 'Ingresa con tu servicio preferido.',
+      signInWithGoogle: 'Inicia sesión con Google',
     },
     languages: {
       english: 'Inglés',
       spanish: 'Español',
     },
+    redirect: {
+      checkingEnvironment: "Verificando tu entorno...",
+      pleaseWait: "Por favor, espere un momento",
+    }
   },
 } as const;

@@ -2,14 +2,13 @@
 
 import { Button } from '@/components/ui/button';
 import { supabase } from '@/lib/supabase';
-import { LogIn } from 'lucide-react';
 
 /**
  * Component for a login button that uses Supabase OAuth with Google.
  *
  * @component
  */
-export function LoginButton() {
+export function LoginButton({ title }: { title: string }) {
   /**
    * Handles the login process using Supabase OAuth with Google.
    */
@@ -23,9 +22,12 @@ export function LoginButton() {
   };
 
   return (
-    <Button onClick={handleLogin} className="w-full">
-      <LogIn className="mr-2 h-4 w-4" />
-      Sign in with Google
+    <Button
+      onClick={handleLogin}
+      className="h-[3rem] w-full flex items-center text-base font-semibold justify-center bg-white text-blue-900 border border-blue-950 rounded-md hover:bg-white"
+    >
+      <img src="/assets/google-logo.png" alt="Google Logo" className="w-6 h-6 mr-2" />
+      {title}
     </Button>
   );
 }

@@ -5,15 +5,14 @@ const remoteBaseUrl =
 const loginUri = '/secureApp/LoginHandler.html';
 
 /**
- * Logs into the remote Etendo system using the provided username
- * (for example "MyEnvUser").
+ * Logs into the remote Etendo system using the provided username.
  *
  * - Checks if there is an active Supabase session.
  * - Retrieves the access token from that session.
  * - Calls the remote API, and if successful, redirects the browser
  *   to the 'target' URL returned by the server.
  *
- * @param username - The remote username (e.g., "MyEnvUser").
+ * @param username - The remote username.
  * @throws Error if there is no Supabase session, no token, or if the remote login fails.
  */
 export async function etendoLogin(username: string): Promise<void> {
