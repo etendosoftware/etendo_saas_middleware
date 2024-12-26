@@ -19,7 +19,7 @@ export default function Home({ params }: {
     const checkUser = async () => {
       const { data: { session } } = await supabase.auth.getSession();
       if (session) {
-        router.push('/dashboard');
+        router.push('/dashboard/redirect');
       }
       setLoading(false);
     };

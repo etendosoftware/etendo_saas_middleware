@@ -14,11 +14,9 @@ import {
   SelectValue,
 } from '@/components/ui/select';
 import { industries } from '@/lib/config/industries';
-import { ArrowLeft } from 'lucide-react';
 import { useRouter } from 'next/navigation';
 import { useCallback, useState } from 'react';
 import { supabase } from '@/lib/supabase';
-import { Navbar } from '@/components/ui/navbar';
 
 export interface Step {
   id: string;
@@ -120,13 +118,26 @@ export default function NewEnvironment({
   const [industry, setIndustry] = useState('');
   const [isCreating, setIsCreating] = useState(false);
   const [environmentId, setEnvironmentId] = useState<string | null>(null);
+  const [environmentName, setEnvironmentName] = useState<string | null>(null);
 
+  const remoteBaseUrl =
+    process.env.NEXT_PUBLIC_ETENDO_URL ?? 'http://localhost:8080/etendo';
+  const loginUri = '/secureApp/LoginHandler.html';
+
+  /**
+   Creates the environment in your DB & Sets up the environment ID for the multi-step creation process.
+   */
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
 
     const {
       data: { session },
     } = await supabase.auth.getSession();
+
+    if (!session) {
+      router.push('/');
+      return;
+    }
 
     const response = await fetch('/api/environments', {
       method: 'POST',
@@ -143,6 +154,7 @@ export default function NewEnvironment({
     const { environment } = await response.json();
 
     setEnvironmentId(environment.id);
+    setEnvironmentName(environment.name);
     setIsCreating(true);
   };
 
@@ -152,11 +164,6 @@ export default function NewEnvironment({
 
   return (
     <div className="container max-w-2xl py-8">
-      <Button variant="ghost" className="mb-6" onClick={() => router.back()}>
-        <ArrowLeft className="mr-2 h-4 w-4" />
-        {t.ui.back}
-      </Button>
-
       <Card>
         <CardHeader>
           <CardTitle className="text-2xl">{t.ui.createNewEnv}</CardTitle>
