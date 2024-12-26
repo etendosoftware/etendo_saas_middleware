@@ -9,8 +9,14 @@ import { Cog, Plus } from 'lucide-react';
 import { useRouter } from 'next/navigation';
 import { useEffect, useState } from 'react';
 import Link from "next/link";
+import { dictionary } from '@/translations';
+import { LanguageSelector } from '@/components/ui/language-selector';
+import { Navbar } from '@/components/ui/navbar';
 
-export default function Dashboard() {
+export default function Dashboard({ params }: {
+  params: { locale: 'en' | 'es' };
+}) {
+  const t = dictionary[params.locale] ?? dictionary.en;
   const router = useRouter();
   const [user, setUser] = useState<UserProfile | null>(null);
   const [environments, setEnvironments] = useState<Environment[]>([]);
@@ -66,7 +72,6 @@ export default function Dashboard() {
     const { data: { session } } = await supabase.auth.getSession();
     const token = session?.access_token;
     if (token) {
-      // Create form parameters
       const formParams = new URLSearchParams();
       if (pass) {
         formParams.append('password', pass);
@@ -92,7 +97,6 @@ export default function Dashboard() {
       const data = await response.json();
       console.log('Respuesta JSON:', data);
 
-      // Redirect if the response contains `target`
       if (data && data.target) {
         window.location.href = data.target;
       } else {
@@ -107,35 +111,27 @@ export default function Dashboard() {
 
   return (
     <div className="min-h-screen bg-background">
-      <header
-        className="sticky top-0 z-50 w-full border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
-        <div className="container flex h-16 items-center justify-between">
-          <h1 className="text-2xl font-bold bg-gradient-to-r from-primary to-primary/60 bg-clip-text text-transparent">
-            Environment Manager
-          </h1>
-          {user && <UserNav user={user} />}
-        </div>
-      </header>
+      <Navbar user={user} locale={params.locale} />
 
       <main className="container py-8 space-y-8">
         <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
           <div className="space-y-1">
-            <h2 className="text-3xl font-bold tracking-tight">Your Environments</h2>
+            <h2 className="text-3xl font-bold tracking-tight">{t.dashboard.yourEnvironments}</h2>
             <p className="text-muted-foreground">
-              Manage and monitor your deployment environments
+              {t.dashboard.manageMonitor}
             </p>
           </div>
-          <Link href="/dashboard/new" passHref>
+          <Link href={`/${params.locale}/dashboard/new`} passHref>
             <Button className="w-full sm:w-auto">
               <Plus className="mr-2 h-4 w-4" />
-              New Environment
+              {t.dashboard.newEnvironment}
             </Button>
           </Link>
         </div>
 
         <Button className="w-full sm:w-auto" variant={"ghost"} onClick={() => logIn("admin", "admin")}>
           <Cog className="mr-2 h-4 w-4" />
-          System Acess
+          {t.dashboard.systemAccess}
         </Button>
         {environments.length === 0 ? (
           <Card className="border-dashed">
@@ -144,9 +140,9 @@ export default function Dashboard() {
                 <Plus className="h-8 w-8 text-primary" />
               </div>
               <div className="space-y-2 text-center">
-                <CardTitle>No environments yet</CardTitle>
+                <CardTitle>{t.dashboard.noEnvironmentsYet}</CardTitle>
                 <CardDescription>
-                  Create your first environment to get started with deployments
+                  {t.dashboard.createFirstEnvironment}
                 </CardDescription>
               </div>
             </CardHeader>
@@ -166,11 +162,11 @@ export default function Dashboard() {
                 </CardHeader>
                 <CardContent>
                   <p className="text-sm text-muted-foreground">
-                    Created on {new Date(env.created_at).toLocaleDateString()}
+                    {t.dashboard.createdOn} {new Date(env.created_at).toLocaleDateString()}
                   </p>
                   <p className="space-x-2">
-                    <Button onClick={() => logIn(env.name + 'Admin')}>Admin Access</Button>
-                    <Button onClick={() => logIn(env.name + 'User')}>User Access</Button>
+                    <Button onClick={() => logIn(env.name + 'Admin')}>{t.dashboard.adminAccess}</Button>
+                    <Button onClick={() => logIn(env.name + 'User')}>{t.dashboard.userAccess}</Button>
                   </p>
                 </CardContent>
               </Card>

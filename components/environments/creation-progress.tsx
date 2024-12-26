@@ -2,7 +2,7 @@
 
 import { CheckCircle2, Circle, Loader2, AlertCircle } from 'lucide-react';
 import { useCallback, useEffect, useRef, useState } from 'react';
-import { Step } from '../../app/dashboard/new/page';
+import { Step } from '../../app/[locale]/dashboard/new/page';
 
 /**
  * Component to display the progress of environment creation steps.
@@ -82,9 +82,8 @@ export function CreationProgress({
           return (
             <div
               key={step.id}
-              className={`flex flex-col gap-1 transition-opacity ${
-                index > currentStepIndex ? 'opacity-50' : 'opacity-100'
-              }`}
+              className={`flex flex-col gap-1 transition-opacity ${index > currentStepIndex ? 'opacity-50' : 'opacity-100'
+                }`}
             >
               <div className="flex items-center gap-3">
                 {icon}
