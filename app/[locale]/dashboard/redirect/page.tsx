@@ -13,8 +13,12 @@ import {
 } from '@/components/ui/card';
 import { Loader2 } from 'lucide-react';
 import { etendoLogin } from '@/utils/supabase/etendo';
+import { dictionary } from '@/translations';
 
-export default function EnvironmentRedirectPage() {
+export default function EnvironmentRedirectPage({ params }: {
+  params: { locale: 'en' | 'es' };
+}) {
+  const t = dictionary[params.locale] ?? dictionary.en;
   const router = useRouter();
   const [loading, setLoading] = useState(true);
 
@@ -37,7 +41,7 @@ export default function EnvironmentRedirectPage() {
           return;
         }
 
-        await etendoLogin(envs[0].name + 'User');
+        const response = await etendoLogin(envs[0].name + 'User');
       } catch (err) {
         console.error(err);
       } finally {
@@ -55,12 +59,12 @@ export default function EnvironmentRedirectPage() {
           <CardHeader>
             <CardTitle className="flex items-center gap-2">
               <Loader2 className="h-5 w-5 animate-spin" />
-              <span>Checking your environment...</span>
+              <span>{t.redirect.checkingEnvironment}</span>
             </CardTitle>
           </CardHeader>
           <CardContent>
             <CardDescription className="text-center">
-              Please wait
+              {t.redirect.pleaseWait}
             </CardDescription>
           </CardContent>
         </Card>

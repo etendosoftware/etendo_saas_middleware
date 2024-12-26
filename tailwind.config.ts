@@ -18,6 +18,9 @@ const config: Config = {
     },
     extend: {
       colors: {
+        blue: {
+          900: '#1D223A',
+        },
         brand: {
           primary: colors.brand.primary,
           secondary: colors.brand.secondary,

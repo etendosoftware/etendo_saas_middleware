@@ -1,3 +1,5 @@
+@import url('https://fonts.googleapis.com/css2?family=Inter:ital,opsz,wght@0,14..32,100..900;1,14..32,100..900&display=swap');
+
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
@@ -72,6 +74,7 @@
   }
   body {
     @apply bg-background text-foreground;
+    font-family: 'Inter', sans-serif;
   }
 }
 
@@ -91,13 +94,13 @@
 
 @layer utilities {
   .bg-grid {
-    background-image: linear-gradient(to right, rgba(0,41,111,0.1) 1px, transparent 1px),
-    linear-gradient(to bottom, rgba(0,41,111,0.1) 1px, transparent 1px);
+    background-image: linear-gradient(to right, rgba(0, 41, 111, 0.1) 1px, transparent 1px),
+      linear-gradient(to bottom, rgba(0, 41, 111, 0.1) 1px, transparent 1px);
     background-size: 24px 24px;
   }
 
   .bg-dot-pattern {
-    background-image: radial-gradient(rgba(0,41,111,0.1) 1px, transparent 1px);
+    background-image: radial-gradient(rgba(0, 41, 111, 0.1) 1px, transparent 1px);
     background-size: 16px 16px;
   }
 }

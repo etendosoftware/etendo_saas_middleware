@@ -1,10 +1,8 @@
 'use client';
 
 import { LoginButton } from '@/components/auth/login-button';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { supabase } from '@/lib/supabase';
 import { dictionary } from '@/translations';
-import { Boxes } from 'lucide-react';
 import { useRouter } from 'next/navigation';
 import { useEffect, useState } from 'react';
 
@@ -32,26 +30,30 @@ export default function Home({ params }: {
   }
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-background to-secondary">
-      <Card className="w-[400px]">
-        <CardHeader className="text-center">
-          <div className="flex justify-center mb-4">
-            <Boxes className="h-12 w-12 text-primary" />
+    <div
+      className="min-h-screen flex items-center justify-center bg-cover bg-center"
+      style={{ backgroundImage: "url('/assets/login-background.png')" }}
+    >
+      <div className="w-[33.25rem] p-[4rem] bg-white/90 rounded-[1.25rem]">
+        <div className="flex justify-center">
+          <img src="/assets/etendo-login-logo.png" alt="Etendo Logo" className="h-[4.75rem] w-[4.75rem]" />
+        </div>
+        <div className="text-center mt-4">
+          <div className='flex items-center justify-center'>
+            <h1 className="text-[1.75rem] font-semibold text-blue-900">
+              {t.login.welcomeTitle}
+            </h1>
+            <img src="/assets/stars.png" alt="Etendo Logo" className="h-8 w-8 ml-1" />
           </div>
-          <CardTitle>{t.login.welcomeTitle}</CardTitle>
-          <CardDescription>
+          <p className="mt-2 text-base text-gray-600">
             {t.login.welcomeDescription}
-          </CardDescription>
-        </CardHeader>
-        <CardContent>
-          <div className="space-y-4">
-            <LoginButton />
-            <div className="text-center text-sm text-muted-foreground">
-              <p>{t.login.signInTerms}</p>
-            </div>
-          </div>
-        </CardContent>
-      </Card>
+          </p>
+        </div>
+
+        <div className="mt-6">
+          <LoginButton title={t.login.signInWithGoogle} />
+        </div>
+      </div>
     </div>
   );
 }

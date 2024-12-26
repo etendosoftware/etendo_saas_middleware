@@ -10,7 +10,6 @@ import { useRouter } from 'next/navigation';
 import { useEffect, useState } from 'react';
 import Link from "next/link";
 import { dictionary } from '@/translations';
-import { LanguageSelector } from '@/components/ui/language-selector';
 import { Navbar } from '@/components/ui/navbar';
 
 export default function Dashboard({ params }: {
