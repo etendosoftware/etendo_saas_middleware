@@ -45,6 +45,7 @@ RUN npm install --production
 
 # Copy build artifacts from the build stage
 COPY --from=builder /app/.next ./.next
+COPY --from=builder /app/public/assets ./public/assets
 COPY --from=builder /app/next.config.js ./
 
 # Expose the port the application will use

@@ -9,14 +9,16 @@ import { supabase } from '@/lib/supabase';
  * @component
  */
 export function LoginButton({ title }: { title: string }) {
+
   /**
    * Handles the login process using Supabase OAuth with Google.
    */
   const handleLogin = async () => {
+    console.log("redirect to", window.location.origin)
     await supabase.auth.signInWithOAuth({
       provider: 'google',
       options: {
-        redirectTo: `${window.location.origin}/dashboard`,
+        redirectTo: `${window.location.origin}/dashboard/redirect`,
       },
     });
   };
