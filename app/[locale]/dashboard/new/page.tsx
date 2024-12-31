@@ -159,7 +159,7 @@ export default function NewEnvironment({
   };
 
   const handleCreationComplete = useCallback(() => {
-    router.push('/dashboard');
+    router.push('/dashboard/redirect');
   }, [router]);
 
   return (

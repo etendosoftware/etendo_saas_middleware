@@ -1,5 +1,6 @@
 import { NextResponse } from 'next/server';
 import { supabase } from "@/lib/supabase";
+import {Org, Role} from "@/lib/types";
 
 /**
  * Handles POST requests to mark an organization as ready for a given environment.
@@ -45,18 +46,58 @@ export async function POST(request: Request) {
     }
 
     // Obtain the token and cookies from the login response
-    const swsTokenData = await swsResponse.json();
+    const swsTokenData : {
+      token: string,
+      roleList: Role[]
+    } = await swsResponse.json();
 
     // Get the organization from the token data
-    const org = swsTokenData.roleList[0].orgList[1];
-    console.info("Marking org as ready for the environment", environment.name);
-    console.info("Organization", org);
+    // 1. Find Admin role for the user
+    let adminRole : Role | null = null;
+    for(const role of swsTokenData.roleList) {
+      if(role?.name.endsWith("Admin")) {
+        adminRole = role;
+      }
+    }
 
-    // Encode admin credentials for basic authentication
+    // 2. Get Org of the role
+    let defaultOrg : Org | null = null;
+    if(adminRole?.orgList) {
+      for (const org of adminRole?.orgList) {
+        if (org.id !== "0") {
+          defaultOrg = org;
+          break;
+        }
+      }
+    }
+
+    if(!adminRole || !defaultOrg) {
+      return NextResponse.json({ error: "No admin role or organization found" }, { status: 500 });
+    }
+    const updateData = await supabase.from('environments').update({ org_id: defaultOrg?.id, admin_role_id: adminRole.id }).eq('id', environmentId);
+    if(updateData.error) {
+      console.error("Error updating environment:", updateData.error);
+      return NextResponse.json({ error: "Failed to update environment" }, { status: 500 });
+    }
+
+    console.info("Marking org as ready for the environment", environment.name);
+    console.info("Organization", defaultOrg);
+
+    const swsResponseWithRole = await fetch(`${process.env.ETENDO_URL}/sws/login`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({
+        username: `${environment.adminUser}`,
+        password: `${environment.adminPass}`,
+        role: `${adminRole}`
+      })
+    });
+    const token = (await swsResponseWithRole.json()).token;
     const basicAuth = btoa(`${environment.adminUser}:${environment.adminPass}`);
 
-
-    const orgIsReadyUrl = `${process.env.ETENDO_URL}/saas_process/orgIsReady?inpisready=Y&strProcessing=Y&inpcascad=N&inpadOrgId=${org.id}&mode=prepare`
+    const orgIsReadyUrl = `${process.env.ETENDO_URL}/saas_process/orgIsReady?inpisready=Y&strProcessing=Y&inpcascad=N&inpadOrgId=${defaultOrg.id}&mode=prepare`
 
     const orgIsReadyResponse = await fetch(orgIsReadyUrl, {
       method: 'POST',
@@ -71,7 +112,7 @@ export async function POST(request: Request) {
       return NextResponse.json({ error: "Falló la creación de la organización en orgIsReady", details: errorText }, { status: orgIsReadyResponse.status });
     }
 
-    const organizationEditionUrl = `${process.env.ETENDO_URL}/saas_process/orgIsReady?inpisready=Y&strProcessing=Y&inpcascad=N&inpadOrgId=${org.id}`
+    const organizationEditionUrl = `${process.env.ETENDO_URL}/saas_process/orgIsReady?inpisready=Y&strProcessing=Y&inpcascad=N&inpadOrgId=${defaultOrg.id}`
 
     const organizationEditionResponse = await fetch(organizationEditionUrl, {
       method: 'POST',

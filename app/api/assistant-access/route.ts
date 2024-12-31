@@ -1,5 +1,6 @@
 import { NextResponse } from 'next/server';
 import { supabase } from "@/lib/supabase";
+import {Role} from "@/lib/types";
 
 /**
  * Handles POST requests to provide assistant access.
@@ -26,26 +27,23 @@ export async function POST(request: Request): Promise<NextResponse> {
     }
 
     // Encode admin credentials for basic authentication
-    const basicAuth = btoa(`${environment.adminUser}:${environment.adminPass}`);
-
-    // Construct the Role URL
-    const roleUrl = `${process.env.ETENDO_URL}/ws/com.etendoerp.etendorx.datasource/Role`;
-    const respRole = await fetch(roleUrl, {
-      method: 'GET',
+    const swsResponse = await fetch(`${process.env.ETENDO_URL}/sws/login`, {
+      method: 'POST',
       headers: {
-        'Authorization': `Basic ${basicAuth}`,
-      }
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({
+        username: `${environment.adminUser}`,
+        password: `${environment.adminPass}`,
+        role: `${environment.admin_role_id}`,
+      })
     });
 
-    // Handle error if role fetching fails
-    if (!respRole.ok) {
-      const errorText = await respRole.text();
-      console.error("Error fetching role:", errorText);
-      return NextResponse.json({ error: "Failed to fetch role", details: errorText }, { status: respRole.status });
-    }
+    const swsData = (await swsResponse.json()) as { token: string, roleList: Role[] };
+    const token = swsData.token;
 
     // Parse the role response
-    const roles = await respRole.json();
+    const roles = swsData.roleList
 
     // Get the list of assistants from environment variables
     const assistants = process.env.ASSISTANT_ACCESS?.split(',').map(a => a.trim()).filter(a => a);
@@ -53,7 +51,7 @@ export async function POST(request: Request): Promise<NextResponse> {
     // Check if there are any assistants provided
     if (assistants && assistants.length > 0) {
       for (const assistant of assistants) {
-        for (const role of roles.response.data) {
+        for (const role of roles) {
           const body = {
             copilotApp: assistant,
             role: role.id
@@ -66,14 +64,14 @@ export async function POST(request: Request): Promise<NextResponse> {
           }
 
           console.info("Sending request to Etendo");
-          console.info("URL:", `${process.env.ETENDO_URL}/ws/com.etendoerp.etendorx.datasource/AssistantAccess`);
+          console.info("URL:", `${process.env.ETENDO_URL}/sws/com.etendoerp.etendorx.datasource/AssistantAccess`);
           console.info("Body:", body);
 
           // Send the POST request to Etendo
-          const response = await fetch(`${process.env.ETENDO_URL}/ws/com.etendoerp.etendorx.datasource/AssistantAccess`, {
+          const response = await fetch(`${process.env.ETENDO_URL}/sws/com.etendoerp.etendorx.datasource/AssistantAccess`, {
             method: 'POST',
             headers: {
-              'Authorization': `Basic ${basicAuth}`,
+              'Authorization': `Bearer ${token}`,
               'Content-Type': 'application/json'
             },
             body: JSON.stringify(body)
@@ -103,7 +101,7 @@ export async function POST(request: Request): Promise<NextResponse> {
 
     if (webhooks && webhooks.length > 0) {
       for (const webhook of webhooks) {
-        for (const role of roles.response.data) {
+        for (const role of roles) {
           const body = {
             smfwheDefinedwebhook: webhook,
             role: role.id
@@ -119,10 +117,10 @@ export async function POST(request: Request): Promise<NextResponse> {
           console.info("Body:", body);
 
           // Send the POST request to Etendo
-          const response = await fetch(`${process.env.ETENDO_URL}/ws/com.etendoerp.etendorx.datasource/WebhookRoleAccess`, {
+          const response = await fetch(`${process.env.ETENDO_URL}/sws/com.etendoerp.etendorx.datasource/WebhookRoleAccess`, {
             method: 'POST',
             headers: {
-              'Authorization': `Basic ${basicAuth}`,
+              'Authorization': `Bearer ${token}`,
               'Content-Type': 'application/json'
             },
             body: JSON.stringify(body)

@@ -18,8 +18,9 @@ export default function Home({ params }: {
       const { data: { session } } = await supabase.auth.getSession();
       if (session) {
         router.push('/dashboard/redirect');
+      } else {
+        setLoading(false);
       }
-      setLoading(false);
     };
 
     checkUser();

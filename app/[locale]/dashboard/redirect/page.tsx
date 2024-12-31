@@ -41,7 +41,7 @@ export default function EnvironmentRedirectPage({ params }: {
           return;
         }
 
-        const response = await etendoLogin(envs[0].name + 'User');
+        const response = await etendoLogin(envs[0].adminUser);
       } catch (err) {
         console.error(err);
       } finally {
