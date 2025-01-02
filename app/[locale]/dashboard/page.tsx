@@ -45,7 +45,8 @@ export default function Dashboard({ params }: {
       const { data: envs } = await supabase
         .from('environments')
         .select('*')
-        .eq('created_by', session.user.id);
+        .eq('created_by', session.user.id)
+        .neq('status', 'N');
 
       if (envs) {
         setEnvironments(envs);
