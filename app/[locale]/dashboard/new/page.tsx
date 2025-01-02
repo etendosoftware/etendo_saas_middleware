@@ -231,7 +231,7 @@ const NewEnvironment = ({ params }: { params: { locale: 'en' | 'es' } }) => {
                     <SelectContent>
                       {industries.map((ind) => (
                         <SelectItem key={ind.id} value={ind.id}>
-                          {ind.label}
+                          {params.locale === 'es' ? ind.label_es : ind.label_en}
                         </SelectItem>
                       ))}
                     </SelectContent>
