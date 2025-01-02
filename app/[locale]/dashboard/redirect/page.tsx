@@ -34,7 +34,8 @@ export default function EnvironmentRedirectPage({ params }: {
         const { data: envs } = await supabase
           .from('environments')
           .select('*')
-          .eq('created_by', session.user.id);
+          .eq('created_by', session.user.id)
+          .neq('status', 'N');
 
         if (!envs || envs.length === 0) {
           router.push('/dashboard/new');
