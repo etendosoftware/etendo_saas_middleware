@@ -10,7 +10,16 @@ import { uuid } from "@supabase/auth-js/src/lib/helpers";
  */
 export async function POST(request: Request): Promise<NextResponse> {
   // Parse the incoming JSON request to get name, industry, and created_by
-  const { name, industry, created_by } = await request.json()
+  const { name, industry, created_by, country: country_id, region, address, phone } = await request.json()
+
+  const { data: exists } = await supabase
+    .from('environments')
+    .select('name')
+    .eq('name', name)
+
+  if (exists?.length ) {
+    return NextResponse.json({ error: 'Environment already exists' }, { status: 400 })
+  }
 
   // Generate admin and user credentials
   const adminUser = name + 'Admin'
@@ -21,7 +30,7 @@ export async function POST(request: Request): Promise<NextResponse> {
   // Insert the new environment into the Supabase database
   const { data, error } = await supabase
     .from('environments')
-    .insert({ name, industry, created_by, adminUser, adminPass, userUser, userPass })
+    .insert({ name, industry, created_by, adminUser, adminPass, userUser, userPass, country_id, region, address, phone })
     .select()
 
   // Handle error if insertion fails
