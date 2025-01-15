@@ -16,6 +16,7 @@ export async function POST(request: Request): Promise<NextResponse> {
     .from('environments')
     .select('name')
     .eq('name', name)
+    .neq('status', 'N');
 
   if (exists?.length ) {
     return NextResponse.json({ error: 'Environment already exists' }, { status: 400 })

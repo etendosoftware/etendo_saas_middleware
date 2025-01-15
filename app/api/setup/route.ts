@@ -12,7 +12,10 @@ export async function POST(request: Request) {
   const { environmentId } = await request.json();
 
   // Fetch environment details from Supabase
-  const { data: environment } = await supabase.from('environments').select().eq('id', environmentId).single();
+  const { data: environment } = await supabase.from('environments')
+    .select()
+    .eq('id', environmentId)
+    .single();
 
   // Prepare the form data for the client creation request
   const formData = new FormData();
