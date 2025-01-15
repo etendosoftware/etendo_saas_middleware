@@ -13,3 +13,6 @@ export interface Environment {
   created_at: string;
   created_by: string;
 }
+
+export type Org = { id: string, name: string };
+export type Role = { id: string, name: string, orgList: Org[] };
